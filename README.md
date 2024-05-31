@@ -17,17 +17,19 @@ This project involves building and training a Convolutional Neural Network (CNN)
 
 To ensure the correct requirements and versions are used, follow these steps to set up the Python virtual environment:
 
-1. **Create a virtual environment**:
+1. **Ensure Python 3.12.0 is Installed**
+    - Download it from [this link](https://www.python.org/downloads/release/python-3120/)
+2. **Create a virtual environment**:
    ```bash 
-   virtualenv pyenv
-2. **Activate the virtual enbironment**:
+   virtualenv -p /path/to/python3.12 pyenv
+3. **Activate the virtual enbironment**:
     - On Windows:
         ```bash 
         pyenv\Scripts\activate
     - On MacOS or Linux
         ```bash
         source pyenv/bin/activate
-3. **Install the required packages**:
+4. **Install the required packages**:
     ```bash
     pip install -r requirements.txt
 ## Running the Project
@@ -41,6 +43,12 @@ Test the Model:
    - his will load the `final_model.pth` state dictionary and evaluate the model on the test set.
 
 ## Additional Files and Directories
+- `Report.pdf`: Contains the finalised IEEE Journal Report
+- `graph.ipynb`: Create a graph of the Architecture of the Model
+- `data_augmentation.ipynb`: Visualises images before and after a list of transformations are applied
+- `architecture_graph.png`: The Architecture of the Model presented in a Graph
+- `final_model.pth`: The model's state dictionary containing the 69.9% accuracy after 2000 epochs
+- `requirements.txt`: The python requirements for the project
 - `old_versions/`: This directory contains:
     - `initial_model.ipynb`: The initial model created for the project.
     - `second_model.ipynb`: The second iteration of the model.
