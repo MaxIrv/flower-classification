@@ -26,11 +26,7 @@ def load_test_data(batch_size):
         transforms.RandomVerticalFlip(p=0.5),
         transforms.RandomRotation(55),
         transforms.GaussianBlur(kernel_size=(5, 9), sigma=(0.1, 5.0)),
-        # Randomly crop to a smaller size and resize back
         transforms.RandomResizedCrop(224, scale=(0.8, 1.0)),
-        # transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),  # Random translation
-        # transforms.RandomPerspective(distortion_scale=0.5, p=0.5, interpolation=3),  # Random perspective transformation
-        # transforms.Normalize(mean = mean, std = std) # Takes each value for the channel, subtracts the mean and divides by the standard deviation (value - mean) / std
     ])
 
     # Define the transformations
@@ -38,11 +34,11 @@ def load_test_data(batch_size):
         [transforms.ToTensor(), transforms.Resize((250, 250))])
 
     # Load the dataset
-    training_dataset = torchvision.datasets.Flowers102(root='./data', split="train",
+    training_dataset = torchvision.datasets.Flowers102(root='../data', split="train",
                                                        download=True, transform=transform_train)
-    testing_dataset = torchvision.datasets.Flowers102(root='./data', split="test",
+    testing_dataset = torchvision.datasets.Flowers102(root='../data', split="test",
                                                       download=True, transform=transformations1)
-    validation_dataset = torchvision.datasets.Flowers102(root='./data', split="val",
+    validation_dataset = torchvision.datasets.Flowers102(root='../data', split="val",
                                                          download=True, transform=transformations1)
 
     # Create the dataloaders
@@ -101,12 +97,11 @@ class CNN(nn.Module):
             nn.Conv2d(in_channels=256, out_channels=256,
                       kernel_size=3, stride=(1, 1), padding=(1, 1)),
             nn.BatchNorm2d(256),
-            nn.PReLU()
+            nn.PReLU(),
+            nn.MaxPool2d(2, 2)
         )
 
-        # self.fc1 = nn.Linear(256 * 3 * 3, 1024)
-        self.fc1 = nn.Linear(256 * 7 * 7, 102)
-        self.drop = nn.Dropout(p=0.5)
+        self.fc1 = nn.Linear(256 * 3 * 3, 512)
         self.fc2 = nn.Linear(512, 256)
         self.fc3 = nn.Linear(256, 102)  # Output layer for 102 classes
 
@@ -120,14 +115,8 @@ class CNN(nn.Module):
 
         x = self.flatten(x)
         x = self.fc1(x)
-        # x = self.drop(x)
-        # x = self.fc2(x)
-        # x = self.drop(x)
-        # x = self.fc3(x)
-        # x = self.drop(x)
-        # x = self.fc2(x)
-        # x = self.relu(x)
-        # x = self.fc3(x)
+        x = self.fc2(x)
+        x = self.fc3(x)
         return x
 
 
@@ -138,8 +127,6 @@ def NetworkAccuracyOnValidation(model, validation_loader, criterion, device):
     val_total = 0
 
     with torch.no_grad():
-        # num_class_correct = [0 for i in range(102)]
-        # num_class_samples = [0 for i in range(102)]
         total_correct = 0
         total_samples = 0
         for images, labels in validation_loader:
@@ -153,13 +140,6 @@ def NetworkAccuracyOnValidation(model, validation_loader, criterion, device):
             _, predicted = outputs.max(1)
             val_total += labels.size(0)
             val_correct += predicted.eq(labels).sum().item()
-
-            # for i in range(len(labels)):
-            #     label = labels[i]
-            #     pred = predictions[i]
-            #     if label == pred:
-            #         num_class_correct[label] += 1
-            #     num_class_samples[label] += 1
 
     val_epoch_loss = val_loss / val_total
     val_epoch_acc = 100. * val_correct / val_total
@@ -188,13 +168,6 @@ def NetworkAccuracyOnTesting(model, device, test_loader):
                 label = labels[i]
                 num_class_correct[label] += c[i].item()
                 num_class_samples[label] += 1
-
-            # for i in range(len(labels)):
-            #     label = labels[i]
-            #     pred = predictions[i]
-            #     if (label == pred):
-            #         num_class_correct[label] += 1
-            #     num_class_samples[label] += 1
 
     acc = 100.0 * total_correct / total_samples
     print(f'Accuracy on testing set: {acc} %')
@@ -230,18 +203,11 @@ def NetworkTraining(model, device, train_loader, validation_loader, criterion, o
             label_pred = model(images)
             loss = criterion(label_pred, labels)
 
-            # Manually add L2 regularization
-            # l2_loss = 0
-            # for param in model.parameters():
-            #     l2_loss += torch.sum(torch.pow(param, 2))
-            # loss += 0.01 * l2_loss  # L2 regularization term
-
             loss.backward()
             optimizer.step()
 
             running_loss += loss.item() * images.size(0)
             _, predicted = label_pred.max(1)
-            # predicted = torch.max(label_pred, 1)[1]
             total += labels.size(0)
             correct += predicted.eq(labels).sum().item()
 
@@ -265,8 +231,6 @@ def NetworkTraining(model, device, train_loader, validation_loader, criterion, o
             scheduler.step(val_epoch_loss)
         else:
             scheduler.step()
-        # scheduler.step(val_epoch_loss)
-        # scheduler.step()
 
         if (val_epoch_acc > best_accuracy):
             best_accuracy = val_epoch_acc
@@ -312,8 +276,6 @@ def main(learning_rate, batch_size, weight_decay, optimizer_name, scheduler_name
     model = CNN().to(device)
 
     criterion = nn.CrossEntropyLoss()
-    # optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
-    # scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.3, total_iters=8)
     
     if optimizer_name == "Adam":
         optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
@@ -336,35 +298,14 @@ def main(learning_rate, batch_size, weight_decay, optimizer_name, scheduler_name
     return learning_rate, batch_size, weight_decay, optimizer_name, scheduler_name, train_accuracies, train_losses, val_accuracies, val_losses, test_acc
             
 if __name__ == "__main__":
-    learning_rate_values = [0.001, 0.0005, 0.0001, 0.00005]
     learning_rate_default = 0.0005
 
-    batch_size_values = [8, 16, 32, 64]
     batch_size_default = 8
 
-    weight_decay_values = [0.1, 0.01, 0.001, 0.0001]
     weight_decay_default = 0.01
     
     optimizers = ["Adam", "AdamW", "RMSprop"]
     schedulers = ["ReduceLROnPlateau", "CosineAnnealingLR", "LinearLR"]
-    
-    factor_values = [0.1, 0.2, 0.3, 0.5, 0.7, 0.9]
-    patience_values = [5, 10, 15, 20]
-    
-    t_max_values = [20, 30, 40, 50, 60, 70, 80, 90, 100]
-    
-    start_factor_values = [0.6, 0.7, 0.8, 0.9, 1.0]
-    end_factor_values = [0.1, 0.2, 0.3, 0.4, 0.5]
-
-    # schedulers = [ lr_scheduler.LinearLR(optimiser, start_factor=1.0, end_factor=0.3, total_iters=8)]
-    # scheduler_default = "LinearLR"
-
-    hyperparameters = [
-        HyperParameterData("learning_rate", learning_rate_values, learning_rate_default),
-        HyperParameterData("batch_size", batch_size_values, batch_size_default),
-        HyperParameterData("weight_decay", weight_decay_values, weight_decay_default),
-        # HyperParameterData("scheduler", schedulers, scheduler_default)
-    ]
     
     table_results = pd.DataFrame(columns=[
         "learning_rate", "batch_size", "weight_decay", "optimizer", "scheduler", "train_accuracies", "train_losses", "val_accuracies", "val_losses", "test_accuracy"])
@@ -388,11 +329,9 @@ if __name__ == "__main__":
                     test_acc
                 ]
                 
-                table_results.to_csv("results.csv")
+                table_results.to_csv("sched_optim_test_results.csv")
                 print(f"Completed for {optimizer_name} = {scheduler_name}")
             except:
                 print(f"Failed for {optimizer_name} = {scheduler_name}")
-    
-    # main(hyperparameters, optimizer, scheduler)
     
     

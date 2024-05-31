@@ -13,11 +13,6 @@ import pandas as pd
 
 
 def load_test_data(batch_size):
-    transform_normal = transforms.Compose([
-        transforms.Resize((250, 250)),
-        transforms.ToTensor()
-    ])
-
     transform_train = transforms.Compose([
         transforms.ToTensor(),
         transforms.Resize((250, 250)),
@@ -26,11 +21,7 @@ def load_test_data(batch_size):
         transforms.RandomVerticalFlip(p=0.5),
         transforms.RandomRotation(55),
         transforms.GaussianBlur(kernel_size=(5, 9), sigma=(0.1, 5.0)),
-        # Randomly crop to a smaller size and resize back
         transforms.RandomResizedCrop(224, scale=(0.8, 1.0)),
-        # transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),  # Random translation
-        # transforms.RandomPerspective(distortion_scale=0.5, p=0.5, interpolation=3),  # Random perspective transformation
-        # transforms.Normalize(mean = mean, std = std) # Takes each value for the channel, subtracts the mean and divides by the standard deviation (value - mean) / std
     ])
 
     # Define the transformations
@@ -38,11 +29,11 @@ def load_test_data(batch_size):
         [transforms.ToTensor(), transforms.Resize((250, 250))])
 
     # Load the dataset
-    training_dataset = torchvision.datasets.Flowers102(root='./data', split="train",
+    training_dataset = torchvision.datasets.Flowers102(root='../data', split="train",
                                                        download=True, transform=transform_train)
-    testing_dataset = torchvision.datasets.Flowers102(root='./data', split="test",
+    testing_dataset = torchvision.datasets.Flowers102(root='../data', split="test",
                                                       download=True, transform=transformations1)
-    validation_dataset = torchvision.datasets.Flowers102(root='./data', split="val",
+    validation_dataset = torchvision.datasets.Flowers102(root='../data', split="val",
                                                          download=True, transform=transformations1)
 
     # Create the dataloaders
@@ -230,18 +221,11 @@ def NetworkTraining(model, device, train_loader, validation_loader, criterion, o
             label_pred = model(images)
             loss = criterion(label_pred, labels)
 
-            # Manually add L2 regularization
-            # l2_loss = 0
-            # for param in model.parameters():
-            #     l2_loss += torch.sum(torch.pow(param, 2))
-            # loss += 0.01 * l2_loss  # L2 regularization term
-
             loss.backward()
             optimizer.step()
 
             running_loss += loss.item() * images.size(0)
             _, predicted = label_pred.max(1)
-            # predicted = torch.max(label_pred, 1)[1]
             total += labels.size(0)
             correct += predicted.eq(labels).sum().item()
 
@@ -261,7 +245,6 @@ def NetworkTraining(model, device, train_loader, validation_loader, criterion, o
         val_accuracies.append(val_epoch_acc)
         print(f"Validation Loss: {val_epoch_loss:.4f}, Validation Accuracy: {val_epoch_acc:.2f}%")
 
-        # scheduler.step(val_epoch_loss)
         scheduler.step()
 
         if (val_epoch_acc > best_accuracy):
@@ -296,9 +279,6 @@ class HyperParameterData:
 
 
 def main(learning_rate, batch_size, weight_decay):
-    
-    # table_results = pd.DataFrame(columns=["learning_rate", "batch_size", "weight_decay", "train_accuracies", "train_losses", "val_accuracies", "val_losses", "test_accuracy"])
-
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     epochs = 250
@@ -330,14 +310,11 @@ if __name__ == "__main__":
     weight_decay_values = [0.1, 0.01, 0.001, 0.0001, 0.00001]
     weight_decay_default = 0.01
 
-    # schedulers = [ lr_scheduler.LinearLR(optimiser, start_factor=1.0, end_factor=0.3, total_iters=8)]
-    # scheduler_default = "LinearLR"
 
     hyperparameters = [
         HyperParameterData("learning_rate", learning_rate_values, learning_rate_default),
         HyperParameterData("batch_size", batch_size_values, batch_size_default),
-        HyperParameterData("weight_decay", weight_decay_values, weight_decay_default),
-        # HyperParameterData("scheduler", schedulers, scheduler_default)
+        HyperParameterData("weight_decay", weight_decay_values, weight_decay_default)
     ]
     
     table_results = pd.DataFrame(columns=["learning_rate", "batch_size", "weight_decay", "train_accuracies", "train_losses", "val_accuracies", "val_losses", "test_accuracy"])
@@ -381,5 +358,3 @@ if __name__ == "__main__":
                 print(f"Completed for {specialParam.name} = {value}")
             except:
                 print(f"Error for {specialParam.name} = {value}")
-    
-    # main(hyperparameters)

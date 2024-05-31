@@ -34,6 +34,8 @@ To ensure the correct requirements and versions are used, follow these steps to 
     pip install -r requirements.txt
 ## Running the Project
 
+I recommend you have CUDA drivers installed if you are using a NVIDIA GPU to speed up Running/Training the Model, or if you are on Mac Silicon (any M-chip Mac), set the Torch Device to `mps` 
+
 Train the Model:
   - Open `final_implementation.ipynb` in Jupyter Notebook or JupyterLab and run all the cells. 
   - This will train the CNN model on the Flowers-102 dataset and save the best model to `best_model.pth.`
@@ -46,6 +48,7 @@ Test the Model:
 - `Report.pdf`: Contains the finalised IEEE Journal Report
 - `graph.ipynb`: Create a graph of the Architecture of the Model
 - `data_augmentation.ipynb`: Visualises images before and after a list of transformations are applied
+- `class_distribution.ipynb`: Visualised the classes distrubtion on the Train/Test/Validation split
 - `architecture_graph.png`: The Architecture of the Model presented in a Graph
 - `final_model.pth`: The model's state dictionary containing the 69.9% accuracy after 2000 epochs
 - `requirements.txt`: The python requirements for the project
