@@ -301,7 +301,7 @@ class HyperParameterData:
 
 def main(learning_rate, batch_size, weight_decay, optimizer_name, scheduler_name):
                         
-    device = torch.device("cuda")
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     epochs = 250
     early_stopping_patience = 50

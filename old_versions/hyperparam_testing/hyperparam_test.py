@@ -299,7 +299,7 @@ def main(learning_rate, batch_size, weight_decay):
     
     # table_results = pd.DataFrame(columns=["learning_rate", "batch_size", "weight_decay", "train_accuracies", "train_losses", "val_accuracies", "val_losses", "test_accuracy"])
 
-    device = torch.device("mps")
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     epochs = 250
     early_stopping_patience = 50
