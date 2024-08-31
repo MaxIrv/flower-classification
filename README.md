@@ -41,8 +41,8 @@ Train the Model:
   - This will train the CNN model on the Flowers-102 dataset and save the best model to `best_model.pth.`
 
 Test the Model:
-   - Open `test_final_model.ipynb` in Jupyter Notebook or JupyterLab and run all the cells. T
-   - his will load the `final_model.pth` state dictionary and evaluate the model on the test set.
+   - Open `test_final_model.ipynb` in Jupyter Notebook or JupyterLab and run all the cells.
+   - This will load the `final_model.pth` state dictionary and evaluate the model on the test set.
 
 ## Additional Files and Directories
 - `Report.pdf`: Contains the finalised IEEE Journal Report
@@ -66,4 +66,4 @@ Further work on this project could involve:
 
 - Investigating the overfitting issue observed during training.
 - Exploring more advanced architectures such as ResNet.
-- Fine-tuning the network by further sexperimenting with different layers, activation functions, learning rates, batch sizes, optimizers, and loss functions.
+- Fine-tuning the network by further experimenting with different layers, activation functions, learning rates, batch sizes, optimizers, and loss functions.
